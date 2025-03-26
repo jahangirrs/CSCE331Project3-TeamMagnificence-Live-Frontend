@@ -15,8 +15,10 @@ addToOrder(){
 <body>
    <h1>Menu</h1>
    <% for (var i in menu) {%>
-      
+      <% if (i % 2 == 0) {%>
        <button onClick= "addToOrder(menu[i])">Name: <%=menu[i].name%><button>
+      <% } %>
+
    <% } %>
 </body>
 
