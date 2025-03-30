@@ -1,10 +1,12 @@
 const express = require('express');
 const { Pool } = require('pg');
 const dotenv = require('dotenv').config();
+const path = require('path');
 
 // Create express app
 const app = express();
 const port = 3000;
+
 
 // Create pool
 const pool = new Pool({
@@ -22,7 +24,6 @@ process.on('SIGINT', function() {
     console.log('Application successfully shutdown');
     process.exit(0);
 });
-	 	 	 	
 app.set("view engine", "ejs");
 
 app.get('/', (req, res) => {
@@ -43,6 +44,37 @@ app.get('/customer', (req, res) => {
             res.render('customer', data);
         });
 
+});
+
+
+app.get('/manager', (req, res) => {
+    employees = []
+    
+    pool
+        .query('SELECT * FROM employees;')
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                employees.push(query_res.rows[i]);
+            }
+            const data = {employees: employees};
+            console.log(employees);
+            res.json(employees);
+        //    res.render('manager', data);
+        });
+    
+        
+});
+
+app.get("/api", (req, res) => {
+    res.json({message: "I am sending data from backend"});
+    console.log("API request received");
+})
+
+
+app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`);
+});
+
     //     order = []
     // orderPrice = []
 
@@ -58,9 +90,3 @@ app.get('/customer', (req, res) => {
 
     // }
         
-});
-
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
-});
-
