@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const dotenv = require('dotenv').config();
 const path = require('path');
+const { timeStamp } = require('console');
 
 // Create express app
 const app = express();
@@ -47,9 +48,10 @@ app.get('/customer', (req, res) => {
 });
 
 
-app.get('/manager', (req, res) => {
+app.get('/manager/employees', (req, res) => {
+
+    //get employee data from database
     employees = []
-    
     pool
         .query('SELECT * FROM employees;')
         .then(query_res => {
@@ -59,16 +61,89 @@ app.get('/manager', (req, res) => {
             const data = {employees: employees};
             console.log(employees);
             res.json(employees);
-        //    res.render('manager', data);
         });
+    
     
         
 });
 
-app.get("/api", (req, res) => {
-    res.json({message: "I am sending data from backend"});
-    console.log("API request received");
-})
+app.get("/manager/inventory", (req, res) => {
+    //get inventory data from backend
+    inventory = []
+    pool
+        .query('SELECT * FROM inventory;')
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                inventory.push(query_res.rows[i]);
+            }
+            const data = {inventory: inventory};
+            console.log(inventory);
+            res.json(inventory);
+        });
+});
+
+app.get("/manager/menu", (req, res) => {
+    //get menu data from backend
+    menu = []
+    pool
+        .query('SELECT * FROM menu;')
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                menu.push(query_res.rows[i]);
+            }
+            const data = {menu: menu}; 
+            console.log(menu);
+            res.json(menu);
+        });
+});
+
+
+app.get("/manager/hourlySales", (req, res) => {
+    //get timestamp of last Zreport generated
+    lastZReport = [];
+    pool
+        .query("SELECT * FROM zreportgenerated ORDER BY date DESC LIMIT 1;")
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                lastZReport.push(query_res.rows[i]);
+            }
+            const data = {lastZReport: lastZReport};
+            console.log(lastZReport);
+        });
+
+    //get sales data from backend
+    sales = []
+    const now = new Date().getTime();
+    pool
+        .query(`SELECT SUM(total_cost) AS sales, EXTRACT(HOUR FROM date) 
+            AS hour FROM orders WHERE date BETWEEN` + 
+            "'" + lastZReport.toString() + "'" +  "AND" + 
+            "'" +  now.toString() + "'" +
+            `GROUP BY hour ORDER BY hour;`)
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                sales.push(query_res.rows[i]);
+            }
+            const data = {sales: sales};
+            console.log(sales);
+            res.json(sales);
+        });
+});
+
+app.get("/manager/purchaseOrder", (req, res) => {
+    //get menu data from backend
+    purchaseOrders = []
+    pool
+        .query('SELECT * FROM purchaseorders;')
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                purchaseOrders.push(query_res.rows[i]);
+            }
+            const data = {purchaseOrders: purchaseOrders}; 
+            console.log(purchaseOrders);
+            res.json(purchaseOrders);
+        });
+});
 
 
 app.listen(port, () => {
