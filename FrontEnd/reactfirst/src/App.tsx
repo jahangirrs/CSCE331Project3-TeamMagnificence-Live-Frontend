@@ -2,13 +2,16 @@ import { useState } from 'react'
 import './App.css'
 import React from 'react'
 
+//URL variable, change depending on local testing or Live push
+let BackendURL = "http://csce331project3-teammagnificence-live.onrender.com/";
+
 //Fetch and Build employee Table
 function EmployeeView(){
   const [employees, setEmployees] = useState("");
 
   //API call to backend for employee data
   React.useEffect(() => {
-    fetch("/manager/employees")
+    fetch(BackendURL + "manager/employees")
       .then((res) => res.json())
       .then((data) => setEmployees(data)
       
@@ -69,7 +72,7 @@ function InventoryView(){
 
   //API call to backend for inventory data
   React.useEffect(() => {
-    fetch("/manager/inventory")
+    fetch(BackendURL + "manager/inventory")
     .then((res) => res.json())
     .then((data) => setInventory(data))
     .catch(e => console.log(e))
@@ -133,7 +136,7 @@ function MenuView(){
 
   //API call to backend for menu data
   React.useEffect(() => {
-    fetch("/manager/menu")
+    fetch(BackendURL + "manager/menu")
     .then((res) => res.json())
     .then((data) => setMenu(data))
     .catch(e => console.log(e))
@@ -183,7 +186,7 @@ function HourlySalesView(){
 
   //API call to backend for sales data
   React.useEffect(() => {
-    fetch("/manager/hourlySales")
+    fetch(BackendURL + "manager/hourlySales")
     .then((res) => res.json())
     .then((data) => setHourlySales(data))
     .catch(e => console.log(e))
@@ -231,7 +234,7 @@ function PurchaseOrderView(){
 
   //API call to backend for purchase order data
   React.useEffect(() => {
-    fetch("/manager/purchaseOrder")
+    fetch(BackendURL + "manager/purchaseOrder")
     .then((res) => res.json())
     .then((data) => setPurchaseOrders(data))
     .catch(e => console.log(e))
