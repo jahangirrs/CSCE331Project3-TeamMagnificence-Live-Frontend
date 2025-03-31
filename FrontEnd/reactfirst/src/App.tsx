@@ -301,11 +301,11 @@ function App() {
 
   //Hide all views
   function hideAll(){
-    setDisplayEmployee((displayEmployee) => false);
-    setDisplayInventory((displayInventory) => false);
-    setDisplayMenu((displayMenu) => false);
-    setDisplayHourlySales((displayHourlySales) => false);
-    setDisplayPurchaseOrders((displayPurchaseOrders) => false);
+    setDisplayEmployee(() => false);
+    setDisplayInventory(() => false);
+    setDisplayMenu(() => false);
+    setDisplayHourlySales(() => false);
+    setDisplayPurchaseOrders(() => false);
   }
 
   //Toggle view on button clicks
