@@ -11,8 +11,8 @@ const port = 3000;
 
 //Set who can request
 const corsOrigin = {
- //   origin: "https://csce331project3-teammagnificence-live-o7uu.onrender.com"
-    origin: "http://localhost:5173"
+    origin: "https://csce331project3-teammagnificence-live-o7uu.onrender.com"
+  //  origin: "http://localhost:5173"
 }
 app.use(cors(corsOrigin));
 
