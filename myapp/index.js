@@ -142,7 +142,7 @@ app.get("/manager/hourlySales", (req, res) => {
 });
 
 //Get sales data given a specific time window
-app.get.
+
 
 app.get("/manager/purchaseOrder", (req, res) => {
     //get menu data from backend
