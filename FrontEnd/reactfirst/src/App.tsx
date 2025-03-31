@@ -225,6 +225,7 @@ function HourlySalesView(){
   );
 }
 
+//Fetch and build purchase orders table
 function PurchaseOrderView(){
   const [purchaseOrders, setPurchaseOrders] = useState("");
 
