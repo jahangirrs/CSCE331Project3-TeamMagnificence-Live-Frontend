@@ -5,11 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
 
-  server: {
-    proxy: {
-      "/manager": {
-        target: "https://csce331project3-teammagnificence-live.onrender.com/"
-      }
-    }
-  }
+  // server: {
+  //   proxy: {
+  //     "/manager": {
+  //       target: "https://csce331project3-teammagnificence-live.onrender.com/"
+  //     }
+  //   }
+  // }
 })
