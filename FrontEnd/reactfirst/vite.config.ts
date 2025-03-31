@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/manager": {
-        target: "http://localhost:3000"
+        target: "https://csce331project3-teammagnificence-live.onrender.com/"
       }
     }
   }
