@@ -13,7 +13,7 @@ const port = 3000;
 const corsOrigin = {
     origin: "https://csce331project3-teammagnificence-live-o7uu.onrender.com"
 }
-app.use(corsOrigin);
+app.use(cors(corsOrigin));
 
 // Create pool
 const pool = new Pool({
