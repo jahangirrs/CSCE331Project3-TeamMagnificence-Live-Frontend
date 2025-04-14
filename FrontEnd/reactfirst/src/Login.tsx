@@ -7,6 +7,10 @@ import {jwtDecode} from "jwt-decode";
  const BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
 //const BackendURL = "http://localhost:3000/";
 
+//front end url
+const FrontendURL = "https://csce331project3-teammagnificence-live-o7uu.onrender.com/";
+//const FrontendURL = "http://localhost:5173";
+
 function Login(){
     const [userData, setUserData] = useState(Object);
     const currQuery = new URLSearchParams(window.location.search);
@@ -28,7 +32,7 @@ function Login(){
         "response_type=code&" +
         "client_id=104092234806-rmjagmekkhhcrd303i16jd0cblcp9a8g.apps.googleusercontent.com&" +
         "scope=openid%20email&" +
-        "redirect_uri=http://localhost:5173&" +
+        "redirect_uri=" + FrontendURL +
         "state=" + localStorage.getItem("state") + "&" +
         "login_hint=jsmith@example.com&" +
         "nonce=" + localStorage.getItem("none")
