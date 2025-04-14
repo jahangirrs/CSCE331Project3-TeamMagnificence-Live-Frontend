@@ -3,8 +3,8 @@ import './Manager.css'
 import React from 'react'
 
 //URL variable, change depending on local testing or Live push
-//let BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
-let BackendURL = "http://localhost:3000/";
+let BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
+//let BackendURL = "http://localhost:3000/";
 
 //Fetch and Build employee Table
 function EmployeeView(){
@@ -492,7 +492,7 @@ function MenuUpdateView() {
       body: JSON.stringify(menuDetails)
     })
     .then(res => res.json())
-    .then(data => {
+    .then( => {
       alert("Menu updated!");
       setSelectedMenuId(null);
       setMenuDetails(null);
