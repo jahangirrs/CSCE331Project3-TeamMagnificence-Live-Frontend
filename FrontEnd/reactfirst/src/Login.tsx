@@ -33,7 +33,7 @@ function Login(){
         "client_id=104092234806-rmjagmekkhhcrd303i16jd0cblcp9a8g.apps.googleusercontent.com&" +
         "scope=openid%20email&" +
         "redirect_uri=" + FrontendURL +
-        "state=" + localStorage.getItem("state") + "&" +
+        "&state=" + localStorage.getItem("state") + "&" +
         "login_hint=jsmith@example.com&" +
         "nonce=" + localStorage.getItem("none")
 
