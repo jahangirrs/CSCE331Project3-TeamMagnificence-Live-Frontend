@@ -492,7 +492,7 @@ function MenuUpdateView() {
       body: JSON.stringify(menuDetails)
     })
     .then(res => res.json())
-    .then( => {
+    .then( () => {
       alert("Menu updated!");
       setSelectedMenuId(null);
       setMenuDetails(null);
