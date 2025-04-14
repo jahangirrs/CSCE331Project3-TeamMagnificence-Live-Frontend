@@ -1,0 +1,42 @@
+h1{
+text-align: top;
+}
+
+table{
+  display: block;
+  align-items: center;
+}
+
+/* Add to your Manager.css */
+.zreport-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #0c63bb;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.zreport-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.zreport-label {
+  font-weight: bold;
+  color: #333;
+}
+
+.zreport-item:last-child {
+  border-bottom: none;
+}
+
+.error-message {
+  color: #d32f2f;
+  padding: 10px;
+  background-color: #fde0e0;
+  border-radius: 4px;
+  margin-top: 10px;
+}
