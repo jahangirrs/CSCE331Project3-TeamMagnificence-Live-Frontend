@@ -385,7 +385,7 @@ function Cashier() {
                                             display: 'flex',
                                             flexDirection: 'column',
                                             justifyContent: 'center',
-                                            backgroundColor: '#D3D3D3',
+                                            backgroundColor: 'black',
                                         }}
                                         
                                     >
