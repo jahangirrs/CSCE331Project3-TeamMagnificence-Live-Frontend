@@ -65,7 +65,7 @@ const CustomItemWindow = ({item, save, cancel}:
 
 return (
     <div style = {{display: 'flex', position: 'fixed', alignItems: 'center', justifyContent: 'center'}}>
-        <div style = {{ backgroundColor: 'white', borderRadius: '15px', width: '1640px', height: '4000px', maxWidth: '100%', maxHeight: '100%'}}>
+        <div style = {{ backgroundColor: 'darkslategray', borderRadius: '15px', width: '1640px', height: '4000px', maxWidth: '100%', maxHeight: '100%'}}>
             <h1 style = {{textAlign: 'center'}}>Customize: {item.name}</h1>
             <h2 style = {{textAlign: 'center'}}>Ice</h2>
             <div style = {{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px'}}>
