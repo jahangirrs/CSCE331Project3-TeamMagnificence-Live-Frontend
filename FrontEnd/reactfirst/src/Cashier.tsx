@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { fetchWeatherApi } from 'openmeteo';
-import { useNavigate } from 'react-router-dom';
 import React from 'react';
         
 //URL variable, change depending on local testing or Live push
@@ -76,11 +74,11 @@ function Cashier() {
             icePer: icePer,
             sugarPer: sugarPer,
             topping: finalTopping,
-            totalCost: customize.cost +toppingCost,
-            name: customize.name,
-            group: customize.group,
-            cost: customize.cost,
-            id: customize.id,
+            totalCost: customize !== null ? customize.cost +toppingCost : 0,
+            name: customize !== null ? customize.name: '',
+            group: customize !== null ? customize.group: '',
+            cost: customize !== null ? customize.cost: 0,
+            id: customize !== null ? customize.id: 0,
             itemID: genID()
         }
 
@@ -125,7 +123,7 @@ function Cashier() {
                 tipPercentage: tip,
                 tipTotal: total_Cost * (tip/ 100),
                 orderTotal: total_Cost * (1 + tip/100),
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toLocaleString()
             };
 
             const response = await fetch(`${BackendURL}submitOrder`, {
@@ -153,7 +151,7 @@ function Cashier() {
         }
     };
 
-    const navigate = useNavigate();
+
 
 
     return(
@@ -184,7 +182,7 @@ function Cashier() {
                         gridTemplateColumns: 'repeat(10, 120px)'
                     }}>
 
-                        {Object.entries(menuCategories).map(function([key_Cat, value_Items]) {
+                        {Object.entries(menuCategories).map(function([, value_Items]) {
                             return value_Items.map(function(item){
                                     let backgroundColor='black';
                                     if (customize !== null && customize.id === item.id){

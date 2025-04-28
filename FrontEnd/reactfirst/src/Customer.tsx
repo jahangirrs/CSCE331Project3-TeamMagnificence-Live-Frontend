@@ -383,7 +383,7 @@ function Customer() {
                 tipPercentage: tip,
                 tipTotal: total_Cost * (tip/ 100),
                 orderTotal: total_Cost * (1 + tip/100),
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toLocaleString()
             };
 
 
