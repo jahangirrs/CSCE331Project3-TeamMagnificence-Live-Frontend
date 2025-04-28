@@ -3,14 +3,34 @@ import './Manager.css'
 import React from 'react'
 
 //URL variable, change depending on local testing or Live push
-let BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
-//let BackendURL = "http://localhost:3000/";
+//let BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
+let BackendURL = "http://localhost:3000/";
 
 //Fetch and Build employee Table
 function EmployeeView(){
-  const [employees, setEmployees] = useState("");
 
-  //API call to backend for employee data
+  interface Employee {
+    id: number;
+    name: string;
+    clockedin: boolean;
+    clockintime: string;
+    clockouttime: string;
+    manager: boolean;
+    pto: number;
+  }
+
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [editMode, setEditMode] = useState(false);
+  const [addingEmployee, setAddingEmployee] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    name: "",
+    manager: false,
+    pto: 0
+  });
+  const [removed, setRemoved] = useState(false);
+  const [removeMode, setRemoveMode] = useState(false);
+
+
   React.useEffect(() => {
     fetch(BackendURL + "manager/employees")
       .then((res) => res.json())
@@ -18,58 +38,165 @@ function EmployeeView(){
       
     )
     .catch(e => console.log(e))
-  }, []);
+  }, [removed]);
 
-  const employeeData = JSON.parse(JSON.stringify(employees));
-  const rows = [];
-   for(const i in employeeData){
-      rows.push([employeeData[i].id, employeeData[i].name, employeeData[i].clockedin.toString(),
-      employeeData[i].clockintime, employeeData[i].clockouttime, 
-      employeeData[i].manager.toString(), employeeData[i].pto]);
-   }
+  const handleInputChange = <K extends keyof Employee>(
+    index: number,
+    field: K,
+    value: Employee[K]
+  ) => {
+    const updated = [...employees];
+    updated[index] = { ...updated[index], [field]: value };
+    setEmployees(updated);
+  };
+
+
+   //remove button logic
+  const [id, setID] = useState(-1);
+   function remove(){
+     fetch(BackendURL + "manager/remove" + "?table=employees&id=" + id, {method: 'POST'})
+     setRemoved(!removed);
+     alert("Employee Removed!")
+  }
+  const handleSubmit = () => {
+    fetch(BackendURL + "manager/employees", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(employees)
+    })
+    .then(res => res.json())
+    .then(() => {
+      alert("Employees updated!");
+      setEditMode(false);
+    })
+    .catch(e => alert("Update failed: " + e.message));
+  };
+
+  const submitNewEmployee = () => {
+    fetch(BackendURL + "manager/employees", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newEmployee)
+    })
+      .then(res => res.json())
+      .then(() => {
+        alert("Employee added!");
+        setAddingEmployee(false);
+        setNewEmployee({ name: "", manager: false, pto: 0 });
+        // reload
+        return fetch(BackendURL + "manager/employees")
+          .then((res) => res.json())
+          .then((data) => setEmployees(data));
+      });
+  };
 
 
   return (
     <>
       <h1>Employees</h1>
+      <button onClick={() => setEditMode(!editMode)}>
+        {editMode ? "Cancel" : "Update Employees"}
+      </button>
+      {editMode && <button onClick={handleSubmit}>Submit Changes</button>}
+      <button onClick={() => setAddingEmployee(!addingEmployee)}>
+        {addingEmployee ? "Cancel Add" : "➕ Add New Employee"}
+      </button>
+      <button onClick={() => {setRemoveMode(!removeMode)}}>{removeMode ? 'Cancel' : '➖ Remove Employee'}</button>
+      {removeMode && <button onClick = {() => {if(id > -1){remove()}  setRemoveMode(false) } }>Remove</button>}
 
-        <table>
+      <table>
+        <thead>
+          <tr>
+            {removeMode && <th>Remove?</th>}
+            <th>ID</th>
+            <th>Name</th>
+            <th>Clocked In</th>
+            <th>Clock In Time</th>
+            <th>Clock Out Time</th>
+            <th>Manager</th>
+            <th>PTO</th>
+          </tr>
+        </thead>
+        <tbody>
+          {employees.map((emp: any, idx: number) => (
+            <tr key={emp.id}>
+              {removeMode && <td><input type = 'radio' name = "removeRadio" onChange={e => {e.target.checked ? setID(emp.id) : setID(-1)} }/></td>}
+              <td>{emp.id}</td>
+              <td>
+                {editMode ? (
+                  <input value={emp.name} onChange={e => handleInputChange(idx, "name", e.target.value)} />
+                ) : emp.name}
+              </td>
+              <td>{emp.clockedin.toString()}</td>
+              <td>{emp.clockintime}</td>
+              <td>{emp.clockouttime}</td>
+              <td>
+                {editMode ? (
+                  <input type="checkbox" checked={emp.manager} onChange={(e) => handleInputChange(idx, "manager", e.target.checked)}/>
+                ) : emp.manager.toString()}
+              </td>
+              <td>
+                {editMode ? (
+                  <input type="number" value={emp.pto} onChange={(e) => handleInputChange(idx, "pto", parseFloat(e.target.value))}/>
+                ) : emp.pto}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+        {addingEmployee && (
+        <tr>
+          <td>Auto</td>
+          <td>
+            <input value={newEmployee.name} onChange={e => setNewEmployee({...newEmployee, name: e.target.value})} />
+          </td>
+          <td>false</td>
+          <td>Auto</td>
+          <td>Auto</td>
+          <td>
+            <input type="checkbox" checked={newEmployee.manager} onChange={e => setNewEmployee({...newEmployee, manager: e.target.checked})} />
+          </td>
+          <td>
+            <input type="number" value={newEmployee.pto} onChange={e => setNewEmployee({...newEmployee, pto: parseInt(e.target.value)})} />
+          </td>
+          <td>
+            <button onClick={submitNewEmployee}>Add</button>
+          </td>
+        </tr>
+      )}
 
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Clocked In</th>
-                <th>Clock In Time</th>
-                <th>Clock Out Time</th>
-                <th>Manager</th>
-                <th>PTO</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map( (row:any) => 
-                  <tr key = {row}>{
-                    row.map( (data:any) => 
-                  
-                      <td key = {data+Math.random()}>{data}</td>
-                  
-                    )
-                    
-                  }</tr>
-                
-              )}
-            </tbody>
-      
-        </table>
-
+      </table>
     </>
-    
-  )
+  );
 }
 
+
 //Fetch and build inventory table
-function InventoryView(){
-  const [inventory, setInventory] = useState("");
+function InventoryView() {
+  interface Inventory {
+    id: number;
+    name: string;
+    unitsize: string;
+    stocknum: number;
+    stockpercent: number;
+    idealstock: number;
+    itemprice: number;
+    supplier: string;
+    islow: boolean;
+  }
+
+  const [inventory, setInventory] = useState<Inventory[]>([]);
+  const [editMode, setEditMode] = useState(false);
+  const [addingInventory, setAddingInventory] = useState(false);
+  const [newInventory, setNewInventory] = useState({
+    name: "",
+    unitsize: "",
+    idealstock: 0,
+    itemprice: 0,
+    supplier: "",
+    islow: false
+  });
+  const [removed, setRemoved] = useState(false);
+  const [removeMode, setRemoveMode] = useState(false);
 
   //API call to backend for inventory data
   React.useEffect(() => {
@@ -77,25 +204,76 @@ function InventoryView(){
     .then((res) => res.json())
     .then((data) => setInventory(data))
     .catch(e => console.log(e))
-  }, []);
+  }, [removed]);
 
-  const inventoryData = JSON.parse(JSON.stringify(inventory));
-  const rows = [];
-  for(const i in inventoryData){
-    rows.push([inventoryData[i].id, inventoryData[i].name, inventoryData[i].unitsize, 
-      inventoryData[i].stocknum.toFixed(2), inventoryData[i].stockpercent.toFixed(2), 
-      inventoryData[i].idealstock, inventoryData[i].itemprice, 
-      inventoryData[i].supplier, inventoryData[i].islow.toString()]);
+  const handleInputChange = <K extends keyof Inventory>(
+    index: number,
+    field: K,
+    value: Inventory[K]
+  ) => {
+    const updated = [...inventory];
+    updated[index] = { ...updated[index], [field]: value };
+    setInventory(updated);
+  };
+
+  const handleSubmit = () => {
+    fetch(BackendURL + "manager/inventory", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(inventory)
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("Inventory updated!");
+        setEditMode(false);
+      })
+      .catch((e) => alert("Update failed: " + e.message));
+  };
+
+  const submitNewInventory = () => {
+    fetch(BackendURL + "manager/inventory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newInventory)
+    })
+      .then(res => res.json())
+      .then(() => {
+        alert("Inventory item added!");
+        setAddingInventory(false);
+        setNewInventory({ name: "", unitsize: "", idealstock: 0, itemprice: 0, supplier: "", islow: false });
+        return fetch(BackendURL + "manager/inventory")
+          .then(res => res.json())
+          .then(data => setInventory(data));
+      });
+  };
+
+
+  //remove button logic
+  const [id, setID] = useState(-1);
+  function remove(){
+    fetch(BackendURL + "manager/remove" + "?table=inventory&id=" + id, {method: 'POST'})
+    setRemoved(!removed);
+    alert("Inventory Removed!")
   }
 
   return(
     <>
       <h1>Inventory</h1>
-    
+      <button onClick={() => setEditMode(!editMode)}>
+        {editMode ? "Cancel" : "Update Inventory"}
+      </button>
+      {editMode && <button onClick={handleSubmit}>Submit Changes</button>}
+      <button onClick={() => setAddingInventory(!addingInventory)}>
+        {addingInventory ? "Cancel Add" : "➕ Add New Inventory"}
+      </button>
+      <button onClick={() => {setRemoveMode(!removeMode)}}>{removeMode ? 'Cancel' : '➖ Remove Inventory'}</button>
+      {removeMode && <button onClick = {() => {if(id > -1){remove()}  setRemoveMode(false) } }>Remove</button>}
+
       <table>
 
         <thead>
           <tr>
+            {removeMode && <th>Remove?</th>}
             <th>ID</th>
             <th>Name</th>
             <th>Unit Size</th>
@@ -108,32 +286,95 @@ function InventoryView(){
           </tr>
         </thead>
         <tbody>
-          {rows.map( (row:any) =>
-            <tr key = {row}>{
-              row.map( (data:any) =>
-              
-                <td key = {data + Math.random()}>{data}</td>
-              
-              )
-
-            }</tr>
-          
+          {inventory.map((item, idx) => (
+            <tr key={item.id}>
+              {removeMode && <td><input type = 'radio' name = "removeRadio" onChange={e => {e.target.checked ? setID(item.id) : setID(-1)} }/></td>}
+              <td>{item.id}</td>
+              <td>
+                {editMode ? (
+                  <input value={item.name} onChange={e => handleInputChange(idx, "name", e.target.value)} />
+                ) : item.name}
+              </td>
+              <td>
+                {editMode ? (
+                  <input value={item.unitsize} onChange={e => handleInputChange(idx, "unitsize", e.target.value)} />
+                ) : item.unitsize}
+              </td>
+              <td>{item.stocknum.toFixed(2)}</td>
+              <td>{item.stockpercent.toFixed(2)}</td>
+              <td>
+                {editMode ? (
+                  <input type="number" value={item.idealstock} onChange={e => handleInputChange(idx, "idealstock", parseFloat(e.target.value))} />
+                ) : item.idealstock}
+              </td>
+              <td>
+                {editMode ? (
+                  <input type="number" value={item.itemprice} onChange={e => handleInputChange(idx, "itemprice", parseFloat(e.target.value))} />
+                ) : item.itemprice}
+              </td>
+              <td>
+                {editMode ? (
+                  <input value={item.supplier} onChange={e => handleInputChange(idx, "supplier", e.target.value)} />
+                ) : item.supplier}
+              </td>
+              <td>
+                {editMode ? (
+                  <input type="checkbox" checked={item.islow} onChange={e => handleInputChange(idx, "islow", e.target.checked)} />
+                ) : item.islow.toString()}
+              </td>
+            </tr>
+          ))}
+          {addingInventory && (
+            <tr>
+              <td>Auto</td>
+              <td><input value={newInventory.name} onChange={e => setNewInventory({...newInventory, name: e.target.value})} /></td>
+              <td><input value={newInventory.unitsize} onChange={e => setNewInventory({...newInventory, unitsize: e.target.value})} /></td>
+              <td>Auto</td>
+              <td>Auto</td>
+              <td><input type="number" value={newInventory.idealstock} onChange={e => setNewInventory({...newInventory, idealstock: parseFloat(e.target.value)})} /></td>
+              <td><input type="number" value={newInventory.itemprice} onChange={e => setNewInventory({...newInventory, itemprice: parseFloat(e.target.value)})} /></td>
+              <td><input value={newInventory.supplier} onChange={e => setNewInventory({...newInventory, supplier: e.target.value})} /></td>
+              <td><input type="checkbox" checked={newInventory.islow} onChange={e => setNewInventory({...newInventory, islow: e.target.checked})} /></td>
+              <td><button onClick={submitNewInventory}>Add</button></td>
+            </tr>
           )}
+
         </tbody>
-
       </table>
-    
-    
-    
     </>
-
-
   );
 }
 
+
 //Fetch and build Menu table
-function MenuView(){
-  const [menu, setMenu] = useState("");
+function MenuView() {
+  interface MenuItem {
+    id: number;
+    item_name: string;
+    base_cost: number;
+    item_group: string;
+  }
+
+  interface InventoryLink {
+    inventory_id: number;
+    name: string;
+    invamount: number;
+  }
+
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [editingMenuId, setEditingMenuId] = useState<number | null>(null);
+  const [ingredientLinks, setIngredientLinks] = useState<InventoryLink[]>([]);
+  const [fullInventory, setFullInventory] = useState<any[]>([]);
+  const [editMode, setEditMode] = useState(false);
+  const [addingMenu, setAddingMenu] = useState(false);
+  const [newMenu, setNewMenu] = useState({
+    item_name: "",
+    base_cost: 0,
+    item_group: "milk tea"
+  });
+  const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
+  const [removed, setRemoved] = useState(false);
+  const [removeMode, setRemoveMode] = useState(false);
 
   //API call to backend for menu data
   React.useEffect(() => {
@@ -141,42 +382,263 @@ function MenuView(){
     .then((res) => res.json())
     .then((data) => setMenu(data))
     .catch(e => console.log(e))
-  }, []);
+  }, [removed]);
 
-  const menuData = JSON.parse(JSON.stringify(menu));
-  const rows = [];
-  for(const i in menuData){
-    rows.push([menuData[i].id, menuData[i].item_name, menuData[i].base_cost, 
-      menuData[i].item_group]);
+  const handleInputChange = <K extends keyof MenuItem>(
+    index: number,
+    field: K,
+    value: MenuItem[K]
+  ) => {
+    const updated = [...menu];
+    updated[index] = { ...updated[index], [field]: value };
+    setMenu(updated);
+  };
+
+  const handleSubmit = () => {
+    fetch(BackendURL + "manager/menu", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(menu),
+    })
+      .then((res) => res.json() )
+      .then(() => {
+        alert("Menu updated!");
+        setEditMode(false);
+      })
+      .catch((e) => alert("Update failed: " + e.message));
+  };
+
+  const submitNewMenu = () => {
+    fetch(BackendURL + "manager/menu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newMenu),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("Menu item added!");
+        setAddingMenu(false);
+        setNewMenu({ item_name: "", base_cost: 0, item_group: "milk tea" });
+        return fetch(BackendURL + "manager/menu")
+          .then((res) => res.json())
+          .then((data) => setMenu(data));
+      });
+  };
+
+  const openIngredientEditor = (menuId: number) => {
+    fetch(`${BackendURL}manager/menu/${menuId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setSelectedMenu(data.menu);           // Save menu item
+        setEditingMenuId(menuId);              // Save menu ID
+        setIngredientLinks(data.inventoryLinks); // Save existing links
+        return fetch(BackendURL + "manager/inventory"); // Fetch full inventory too
+      })
+      .then((res) => res.json())
+      .then((inventoryData) => {
+        setFullInventory(inventoryData);       // Save all inventory items
+      })
+      .catch(e => console.error("Error loading ingredient editor:", e));
+  };
+
+
+  const updateInvAmount = (index: number, value: number) => {
+    const updated = [...ingredientLinks];
+    updated[index].invamount = value;
+    setIngredientLinks(updated);
+  };
+
+  const submitIngredientUpdate = () => {
+    const menuItem = menu.find((m) => m.id === editingMenuId);
+    fetch(`${BackendURL}manager/menu/${editingMenuId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        menu: menuItem,
+        inventoryLinks: ingredientLinks,
+      }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("Ingredients updated!");
+        setEditingMenuId(null);
+        setIngredientLinks([]);
+      })
+      .catch((e) => alert("Update failed: " + e.message));
+  };
+
+  const addNewIngredient = () => {
+    const select = document.getElementById("newIngredientSelect") as HTMLSelectElement;
+    const amountInput = document.getElementById("newIngredientAmount") as HTMLInputElement;
+
+    const inventoryId = parseInt(select.value);
+    const amount = parseFloat(amountInput.value);
+
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please select a valid ingredient and enter a positive amount.");
+      return;
+    }
+
+    const selectedInventory = fullInventory.find(inv => inv.id === inventoryId);
+    if (!selectedInventory) {
+      alert("Selected inventory item not found!");
+      return;
+    }
+
+    const newLink = {
+      inventory_id: inventoryId,
+      name: selectedInventory.name,
+      invamount: amount
+    };
+
+    setIngredientLinks(prev => [...prev, newLink]);
+
+    // Clear the selection
+    select.selectedIndex = 0;
+    amountInput.value = "";
+  };
+
+
+  //remove button logic
+  const [id, setID] = useState(-1);
+  function remove(){
+    fetch(BackendURL + "manager/remove" + "?table=menu&id=" + id, {method: 'POST'})
+    setRemoved(!removed);
+    alert("Menu Item Removed!")
   }
 
   return(
     <>
       <h1>Menu</h1>
-    
+      <button onClick={() => setEditMode(!editMode)}>
+        {editMode ? "Cancel" : "Update Menu"}
+      </button>
+      {editMode && <button onClick={handleSubmit}>Submit Changes</button>}
+      <button onClick={() => setAddingMenu(!addingMenu)}>
+        {addingMenu ? "Cancel Add" : "➕ Add New Menu Item"}
+      </button>
+      <button onClick={() => {setRemoveMode(!removeMode)}}>{removeMode ? 'Cancel' : '➖ Remove Menu'}</button>
+      {removeMode && <button onClick = {() => {if(id > -1){remove()}  setRemoveMode(false) } }>Remove</button>}
       <table>
 
         <thead>
           <tr>
+            {removeMode && <th>Remove?</th>}
             <th>ID</th>
             <th>Item</th>
             <th>Cost</th>
             <th>Group</th>
+            <th>Edit Ingredients</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map( (row:any) =>
-            <tr key = {row}>{
-              row.map( (data:any) =>
-                
-                <td key = {data + Math.random()}>{data}</td>
-              )
-            }</tr>
-
+          {menu.map((item, idx) => (
+            <tr key={item.id}>
+              {removeMode && <td><input type = 'radio' name = "removeRadio" onChange={e => {e.target.checked ? setID(item.id) : setID(-1)} }/></td>}
+              <td>{item.id}</td>
+              <td>
+                {editMode ? (
+                  <input
+                    value={item.item_name}
+                    onChange={(e) => handleInputChange(idx, "item_name", e.target.value)}
+                  />
+                ) : item.item_name}
+              </td>
+              <td>
+                {editMode ? (
+                  <input
+                    type="number"
+                    value={item.base_cost}
+                    onChange={(e) => handleInputChange(idx, "base_cost", parseFloat(e.target.value))}
+                  />
+                ) : item.base_cost.toFixed(2)}
+              </td>
+              <td>
+                {editMode ? (
+                  <select
+                    value={item.item_group}
+                    onChange={(e) => handleInputChange(idx, "item_group", e.target.value)}
+                  >
+                    <option value="milk tea">Milk Tea</option>
+                    <option value="brewed tea">Brewed Tea</option>
+                    <option value="fruit tea">Fruit Tea</option>
+                    <option value="fresh milk">Fresh Milk</option>
+                  </select>
+                ) : item.item_group}
+              </td>
+              <td>
+                <button onClick={() => openIngredientEditor(item.id)}>Edit Ingredients</button>
+              </td>
+            </tr>
+          ))}
+          {addingMenu && (
+            <tr>
+              <td>Auto</td>
+              <td>
+                <input value={newMenu.item_name} onChange={e => setNewMenu({...newMenu, item_name: e.target.value})} />
+              </td>
+              <td>
+                <input type="number" value={newMenu.base_cost} onChange={e => setNewMenu({...newMenu, base_cost: parseFloat(e.target.value)})} />
+              </td>
+              <td>
+                <select value={newMenu.item_group} onChange={e => setNewMenu({...newMenu, item_group: e.target.value})}>
+                  <option value="milk tea">Milk Tea</option>
+                  <option value="brewed tea">Brewed Tea</option>
+                  <option value="fruit tea">Fruit Tea</option>
+                  <option value="fresh milk">Fresh Milk</option>
+                </select>
+              </td>
+              <td>
+                <button onClick={submitNewMenu}>Add</button>
+              </td>
+            </tr>
           )}
         </tbody>
       </table>
-    
+
+      {/* Edit Ingredients Modal */}
+      {editingMenuId !== null && (
+        <div className="modal">
+          <h3>Edit Ingredients for Menu ID: {editingMenuId}</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Inventory Name</th>
+                <th>Amount Used</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ingredientLinks.map((inv, idx) => (
+                <tr key={inv.inventory_id}>
+                  <td>{inv.name}</td>
+                  <td>
+                    <input
+                      type="number"
+                      value={inv.invamount}
+                      onChange={(e) => updateInvAmount(idx, parseFloat(e.target.value))}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <h4>Add New Ingredient</h4>
+            <select id="newIngredientSelect">
+              {fullInventory
+                .filter(inv => !ingredientLinks.some(link => link.inventory_id === inv.id))
+                .map(inv => (
+                  <option key={inv.id} value={inv.id}>
+                    {inv.name}
+                  </option>
+              ))}
+            </select>
+            <input id="newIngredientAmount" type="number" placeholder="Amount" />
+            <button onClick={addNewIngredient}>Add Ingredient</button>
+
+          <button onClick={submitIngredientUpdate}>Save Ingredients</button>
+          <button onClick={() => setEditingMenuId(null)}>Close</button>
+        </div>
+      )}
     </>
   );
 }
@@ -230,66 +692,219 @@ function HourlySalesView(){
 }
 
 //Fetch and build purchase orders table
-function PurchaseOrderView(){
-  const [purchaseOrders, setPurchaseOrders] = useState("");
+function PurchaseOrderView() {
+  interface PurchaseOrder {
+    id: number;
+    inventory_name: string;
+    unitsize: string;
+    supplier_name: string;
+    order_date: string;
+    quantity: number;
+    cost_per_unit: number;
+    total_cost: number;
+    order_status: string;
+    expected_arrival: string;
+    received_date: string;
+  }
+
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+  const [editMode, setEditMode] = useState(false);
+  const [addingOrder, setAddingOrder] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    inventory_name: "",
+    unitsize: "",
+    supplier_name: "",
+    order_date: new Date().toISOString().split("T")[0],
+    quantity: 0,
+    cost_per_unit: 0,
+    order_status: "",
+    expected_arrival: "",
+    received_date: ""
+  });
+  const [removed, setRemoved] = useState(false);
+  const [removeMode, setRemoveMode] = useState(false);
 
   //API call to backend for purchase order data
   React.useEffect(() => {
     fetch(BackendURL + "manager/purchaseOrder")
-    .then((res) => res.json())
-    .then((data) => setPurchaseOrders(data))
-    .catch(e => console.log(e))
-  }, []);
+      .then((res) => res.json())
+      .then((data) => setOrders(data))
+      .catch((e) => console.log(e));
+  }, [removed]);
 
-  const purchaseOrdersData = JSON.parse(JSON.stringify(purchaseOrders));
-  const rows = [];
-  for(const i in purchaseOrdersData){
-    rows.push([purchaseOrdersData[i].inventory_name,
-      purchaseOrdersData[i].unitsize, purchaseOrdersData[i].supplier_name,
-      purchaseOrdersData[i].order_date, purchaseOrdersData[i].quantity,
-      purchaseOrdersData[i].cost_per_unit, purchaseOrdersData[i].total_cost,
-      purchaseOrdersData[i].order_status, purchaseOrdersData[i].expected_arrival,
-      purchaseOrdersData[i].received_date])
+  const handleInputChange = <K extends keyof PurchaseOrder>(
+    index: number,
+    field: K,
+    value: PurchaseOrder[K]
+  ) => {
+    const updated = [...orders];
+    updated[index] = { ...updated[index], [field]: value };
+
+    // update total_cost when quantity or cost_per_unit changes
+    if (field === "quantity" || field === "cost_per_unit") {
+      updated[index].total_cost =
+        updated[index].quantity * updated[index].cost_per_unit;
+    }
+
+    setOrders(updated);
+  };
+  //remove button logic
+  const [id, setID] = useState(-1);
+  function remove(){
+    fetch(BackendURL + "manager/remove" + "?table=purchaseorders&id=" + id, {method: 'POST'})
+    setRemoved(!removed);
+    alert("Purchase Order Removed!")
   }
 
+  const handleSubmit = () => {
+    fetch(BackendURL + "manager/purchaseOrder", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orders),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("Purchase Orders updated!");
+        setEditMode(false);
+      })
+      .catch((e) => alert("Update failed: " + e.message));
+  };
 
-  return(
+  const submitNewOrder = () => {
+    const total_cost = newOrder.quantity * newOrder.cost_per_unit;
+    fetch(BackendURL + "manager/purchaseOrder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...newOrder, total_cost })
+    })
+      .then(res => res.json())
+      .then(() => {
+        alert("Order added!");
+        setAddingOrder(false);
+        setNewOrder({ inventory_name: "", unitsize: "", supplier_name: "", order_date: new Date().toISOString().split("T")[0], quantity: 0, cost_per_unit: 0, order_status: "", expected_arrival: "", received_date: "" });
+        return fetch(BackendURL + "manager/purchaseOrder")
+          .then(res => res.json())
+          .then(data => setOrders(data));
+      });
+  };
+
+
+  return (
     <>
 
       <h1>Purchase Orders</h1>
+      <button onClick={() => setEditMode(!editMode)}>
+        {editMode ? "Cancel" : "Update Purchase Orders"}
+      </button>
+      {editMode && <button onClick={handleSubmit}>Submit Changes</button>}
+      <button onClick={() => setAddingOrder(!addingOrder)}>
+        {addingOrder ? "Cancel Add" : "➕ Add New Order"}
+      </button>
 
-        <table>
+      <button onClick={() => {setRemoveMode(!removeMode)}}>{removeMode ? 'Cancel' : '➖ Remove Order'}</button>
+      {removeMode && <button onClick = {() => {if(id > -1){remove()}  setRemoveMode(false) } }>Remove</button>}
 
-          <thead>
-            <tr>
-              <th>Inventory Item</th>
-              <th>Unit Size</th>
-              <th>Supplier</th>
-              <th>Order Date</th>
-              <th>Amount</th>
-              <th>Price per Unit</th>
-              <th>Total Price</th>
-              <th>Status</th>
-              <th>Expected Arrival</th>
-              <th>Received</th>
-              <th></th>
+      <table>
+        <thead>
+          <tr>
+            {removeMode && <th>Remove?</th>}
+            <th>ID</th>
+            <th>Inventory Item</th>
+            <th>Unit Size</th>
+            <th>Supplier</th>
+            <th>Order Date</th>
+            <th>Amount</th>
+            <th>Price per Unit</th>
+            <th>Total Price</th>
+            <th>Status</th>
+            <th>Expected Arrival</th>
+            <th>Received</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order, idx) => (
+            <tr key={order.id}>
+              {removeMode && <td><input type = 'radio' name = "removeRadio" onChange={e => {e.target.checked ? setID(order.id) : setID(-1)} }/></td>}
+              <td>{order.id}</td>
+              <td>{order.inventory_name}</td>
+              <td>{order.unitsize}</td>
+              <td>{order.supplier_name}</td>
+              <td>{order.order_date}</td>
+              <td>
+                {editMode ? (
+                  <input
+                    type="number"
+                    value={order.quantity}
+                    onChange={(e) =>
+                      handleInputChange(idx, "quantity", parseInt(e.target.value))
+                    }
+                  />
+                ) : order.quantity}
+              </td>
+              <td>
+                {editMode ? (
+                  <input
+                    type="number"
+                    value={order.cost_per_unit}
+                    onChange={(e) =>
+                      handleInputChange(idx, "cost_per_unit", parseFloat(e.target.value))
+                    }
+                  />
+                ) : order.cost_per_unit.toFixed(2)}
+              </td>
+              <td>{order.total_cost.toFixed(2)}</td>
+              <td>
+                {editMode ? (
+                  <input
+                    value={order.order_status}
+                    onChange={(e) =>
+                      handleInputChange(idx, "order_status", e.target.value)
+                    }
+                  />
+                ) : order.order_status}
+              </td>
+              <td>
+                {editMode ? (
+                  <input
+                    type="date"
+                    value={order.expected_arrival?.split("T")[0] ?? ""}
+                    onChange={(e) =>
+                      handleInputChange(idx, "expected_arrival", e.target.value)
+                    }
+                  />
+                ) : order.expected_arrival?.split("T")[0]}
+              </td>
+              <td>
+                {editMode ? (
+                  <input
+                    type="date"
+                    value={order.received_date?.split("T")[0] ?? ""}
+                    onChange={(e) =>
+                      handleInputChange(idx, "received_date", e.target.value)
+                    }
+                  />
+                ) : order.received_date?.split("T")[0]}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map( (row:any) =>
-            
-              <tr key = {row}>{
-                row.map( (data:any) =>
-                
-                  <td key = {data + Math.random()}>{data}</td>
-                )
-                
-              }</tr>
-            
-            )}
-          </tbody>
-        </table>
+          ))}
+          {addingOrder && (
+            <tr>
+              <td><input value={newOrder.inventory_name} onChange={e => setNewOrder({...newOrder, inventory_name: e.target.value})} /></td>
+              <td><input value={newOrder.unitsize} onChange={e => setNewOrder({...newOrder, unitsize: e.target.value})} /></td>
+              <td><input value={newOrder.supplier_name} onChange={e => setNewOrder({...newOrder, supplier_name: e.target.value})} /></td>
+              <td><input type="date" value={newOrder.order_date} onChange={e => setNewOrder({...newOrder, order_date: e.target.value})} /></td>
+              <td><input type="number" value={newOrder.quantity} onChange={e => setNewOrder({...newOrder, quantity: parseInt(e.target.value)})} /></td>
+              <td><input type="number" value={newOrder.cost_per_unit} onChange={e => setNewOrder({...newOrder, cost_per_unit: parseFloat(e.target.value)})} /></td>
+              <td>Auto</td>
+             <td><input value={newOrder.order_status} onChange={e => setNewOrder({...newOrder, order_status: e.target.value})} /></td>
+              <td><input type="date" value={newOrder.expected_arrival} onChange={e => setNewOrder({...newOrder, expected_arrival: e.target.value})} /></td>
+              <td><input type="date" value={newOrder.received_date} onChange={e => setNewOrder({...newOrder, received_date: e.target.value})} /></td>
+              <td><button onClick={submitNewOrder}>Add</button></td>
+  </tr>
+)}
 
+        </tbody>
+      </table>
     </>
 
   );
@@ -447,131 +1062,6 @@ function ZReportView() {
   );
 }
 
-function MenuUpdateView() {
-  const [menuList, setMenuList] = useState([]);
-  const [selectedMenuId, setSelectedMenuId] = useState<number | null>(null);
-  const [menuDetails, setMenuDetails] = useState<any>(null);
-
-  React.useEffect(() => {
-    fetch(BackendURL + "manager/menu")
-      .then(res => res.json())
-      .then(data => setMenuList(data))
-      .catch(e => console.error("Error fetching menu:", e));
-  }, []);
-
-  const loadMenuDetails = (id: number) => {
-    fetch(`${BackendURL}manager/menu/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setSelectedMenuId(id);
-        setMenuDetails(data);
-      })
-      .catch(e => console.error("Error loading menu details:", e));
-  };
-
-  const updateField = (field: string, value: any) => {
-    setMenuDetails((prev: any) => ({
-      ...prev,
-      menu: {
-        ...prev.menu,
-        [field]: value
-      }
-    }));
-  };
-
-  const updateInvAmount = (index: number, value: number) => {
-    const newLinks = [...menuDetails.inventoryLinks];
-    newLinks[index].invamount = parseFloat(value.toString());
-    setMenuDetails((prev: any) => ({ ...prev, inventoryLinks: newLinks }));
-  };
-
-  const handleSubmit = () => {
-    fetch(`${BackendURL}manager/menu/${selectedMenuId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(menuDetails)
-    })
-    .then(res => res.json())
-    .then( () => {
-      alert("Menu updated!");
-      setSelectedMenuId(null);
-      setMenuDetails(null);
-    })
-    .catch(e => alert("Failed to update menu: " + e.message));
-  };
-
-  if (selectedMenuId === null) {
-    return (
-      <div>
-        <h2>Select a Menu to Update</h2>
-        {menuList.map((item: any) => (
-          <button key={item.id} onClick={() => loadMenuDetails(item.id)}>{item.item_name}</button>
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <h2>Editing Menu: {menuDetails.menu.item_name}</h2>
-
-      <label>Item Name: 
-        <input 
-          type="text" 
-          value={menuDetails.menu.item_name}
-          onChange={(e) => updateField("item_name", e.target.value)}
-        />
-      </label>
-
-      <label>Base Cost:
-        <input 
-          type="number" 
-          value={menuDetails.menu.base_cost}
-          onChange={(e) => updateField("base_cost", e.target.value)}
-        />
-      </label>
-
-      <label>Item Group:
-        <select 
-          value={menuDetails.menu.item_group}
-          onChange={(e) => updateField("item_group", e.target.value)}
-        >
-          <option value="milk tea">Milk Tea</option>
-          <option value="brewed tea">Brewed Tea</option>
-          <option value="fruit tea">Fruit Tea</option>
-          <option value="fresh milk">Fresh Milk</option>
-        </select>
-      </label>
-
-      <h3>Inventory Used</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Inventory Item</th>
-            <th>Amount Used</th>
-          </tr>
-        </thead>
-        <tbody>
-          {menuDetails.inventoryLinks.map((inv: any, idx: number) => (
-            <tr key={inv.inventory_id}>
-              <td>{inv.name}</td>
-              <td>
-                <input 
-                  type="number" 
-                  value={inv.invamount}
-                  onChange={(e) => updateInvAmount(idx, parseFloat(e.target.value))}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <button onClick={handleSubmit}>Save Changes</button>
-    </div>
-  );
-}
-
 
 function Manager() {
   //Tab display values
@@ -582,7 +1072,6 @@ function Manager() {
   const [displayPurchaseOrders, setDisplayPurchaseOrders] = useState(false);
   const [displaySalesReport, setDisplaySalesReport] = useState(false);
   const [displayZReport, setDisplayZReport] = useState(false);
-  const [displayMenuUpdate, setDisplayMenuUpdate] = useState(false);
 
   //Hide all views
   function hideAll(){
@@ -593,7 +1082,6 @@ function Manager() {
     setDisplayPurchaseOrders(() => false);
     setDisplaySalesReport(() => false);
     setDisplayZReport(() => false);
-    setDisplayMenuUpdate(() => false);
   }
 
   //Toggle view on button clicks
@@ -632,11 +1120,6 @@ function Manager() {
     setDisplayZReport((displayZReport) => !displayZReport);
   }
 
-  function toggleMenuUpdate() {
-    hideAll();
-    setDisplayMenuUpdate((displayMenuUpdate) => !displayMenuUpdate);
-  }
-
   return (
     <>
       <div>
@@ -647,7 +1130,6 @@ function Manager() {
       <button onClick = {toggleHourlySales}>Hourly Sales</button>
       <button onClick = {togglePurchaseOrders}>Purchase Order</button>
       <button onClick={toggleZReport}>Daily Z-Report</button>
-      <button onClick={toggleMenuUpdate}>Update Menu</button>
       </div>
       {displayEmployee && <EmployeeView />}
       {displayInventory && <InventoryView />}
@@ -656,7 +1138,6 @@ function Manager() {
       {displayPurchaseOrders && <PurchaseOrderView/>}
       {displaySalesReport && <UserSalesReportView/>}
       {displayZReport && <ZReportView />}
-      {displayMenuUpdate && <MenuUpdateView />}
     </>
   )
 }

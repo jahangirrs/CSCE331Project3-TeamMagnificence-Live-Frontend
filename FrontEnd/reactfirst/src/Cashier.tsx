@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { fetchWeatherApi } from 'openmeteo';
+import { useNavigate } from 'react-router-dom';
 import React from 'react';
         
 //URL variable, change depending on local testing or Live push
- const BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
+const BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
 //const BackendURL = "http://localhost:3000/";
 
 type Item = {
@@ -18,7 +19,7 @@ type orderItem = Item &{
     sugarPer: number;
     topping: string;
     totalCost: number;
-    
+    itemID: number;
 
 }
 
@@ -27,389 +28,373 @@ const toppingOptions = [
     'Mini Pearl', 'Ice Cream Pudding', 'Aloe Vera', 'Crystal Boba'
   ];
 
-const CustomItemWindow = ({item, save, cancel}: 
-    {
-        item: Item;
-        save: (
-            customize: {
-                icePer: number;
-                sugarPer: number;
-                totalCost: number;
-                topping: string;
-                
-            }
-        ) => void;
-        cancel: (
-
-        ) => void;
-    }
-) =>{
-    const [icePer, setIcePer] = useState(100);
-    const [sugarPer, setSugarPer] = useState(100);
-    const [finalTopping, setFinalTopping] = useState<string>("None");
-
-
-    const saveSetter =()=> {
-        let toppingCost = 0;
-        if (!(finalTopping === 'None')) {toppingCost = 1;}
-        save (
-            {
-               icePer,
-               sugarPer,
-               totalCost: item.cost + toppingCost,
-               topping: finalTopping
-
-            }
-        )
-    };
-
-return (
-    <div style = {{display: 'flex', position: 'fixed', alignItems: 'center', justifyContent: 'center'}}>
-        <div style = {{ backgroundColor: 'darkslategray', borderRadius: '15px', width: '1640px', height: '4000px', maxWidth: '100%', maxHeight: '100%'}}>
-            <h1 style = {{textAlign: 'center'}}>Customize: {item.name}</h1>
-            <h2 style = {{textAlign: 'center'}}>Ice</h2>
-            <div style = {{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px'}}>
-                {
-                    [100,50,25,0].map(percentage=>{
-                        const perChosen = icePer === percentage;
-                        return (
-                            <button
-                            key = {percentage}
-                            onClick={()=>setIcePer(percentage)}
-                            style={{
-                                backgroundColor: (()=>{
-                                    if(!(perChosen)) {return 'grey';} 
-                                    else {return 'green';}
-                                })(),
-                                color: 'white',
-                                width: '100px',
-                                height: '100px'
-                            }}
-                            >{percentage}%</button>
-                        )
-                    })
-                }
-            </div>
-            <h3 style = {{textAlign: 'center'}}>Sugar</h3>
-            <div style = {{display: 'flex', justifyContent: 'center', gap: '10px'}}>
-                {
-                    [100,50,25,0].map(percentage=>{
-                        const perChosen = sugarPer === percentage;
-                        return (
-                            <button
-                            key = {percentage}
-                            onClick={()=>setSugarPer(percentage)}
-                            style={{
-                                backgroundColor: (()=>{
-                                    if(!(perChosen)) {return 'grey';} 
-                                    else {return 'green';}
-                                })(),
-                                color: 'white',
-                                width: '100px',
-                                height: '100px'
-                            }}
-                            >{percentage}%</button>
-                        )
-                    })
-                }
-            </div>
-            <h4 style = {{textAlign: 'center'}}>Topping +$1</h4>
-            <div style = {{display: 'flex', justifyContent: 'center', gap: '10px'}}>
-                {
-                    toppingOptions.map(top=>{
-                        const topChosen = finalTopping === top;
-                        return (
-                            <button
-                            key = {top}
-                            onClick={()=>setFinalTopping(top)}
-                            style={{
-                                backgroundColor: (()=>{
-                                    if(!(topChosen)) {return 'grey';} 
-                                    else {return 'green';}
-                                })(),
-                                color: 'white',
-                                width: '100px',
-                                height: '100px'
-                            }}
-                            >{top}</button>
-                        )
-                    })
-                }
-            </div>
-            <div style = {{
-                display: 'flex',
-                justifyContent: 'center',
-                marginTop: '40px',
-                gap: '100px'
-            }}>
-                <button
-                onClick = {saveSetter}
-                style = {{
-                    backgroundColor: 'green',
-                    color: 'white',
-                    borderRadius: '10px',
-                    width: '100px',
-                    height: '100px'
-                }}
-            >
-                Add To Order
-            </button>
-            <button
-                onClick = {cancel}
-                style = {{
-                    backgroundColor: 'red',
-                    color: 'white',
-                    borderRadius: '10px',
-                    width: '100px',
-                    height: '100px'
-                }}
-            >
-                Cancel
-            </button>
-
-            </div>
-        </div>
-    </div>
-)
-}
-
 function Cashier() {
     const [cart_Items, set_Cart_Items] = useState<orderItem[]>([]);
     const [menu_Items, set_Menu] = useState("");
     const [customize, setCustomize] = useState<Item | null>(null);
+    const [icePer, setIcePer] = useState(100);
+    const [sugarPer, setSugarPer] = useState(100);
+    const [finalTopping, setFinalTopping] = useState<string>("None");
 
-        React.useEffect(()=>{
-          fetch(BackendURL + "manager/menu")
-          .then((res) => res.json())
-          .then((data) => set_Menu(data))
-          .catch(e => console.log(e))
-        }, []);
-
-        var menu_Data = JSON.parse(JSON.stringify(menu_Items));
-        const menu: Item[] = [];
-        for(var i in menu_Data){
-            menu.push({id: menu_Data[i].id, name: menu_Data[i].item_name, cost: menu_Data[i].base_cost, group: menu_Data[i].item_group});
-        }
-
-    const [weatherData, setWeatherData] = useState<any>(null);
-
-    const getWeatherIcon = (code: number): string => {
-        if ([0].includes(code)) return "☀️";             // Clear
-        if ([1, 2].includes(code)) return "🌤️";          // Mostly clear, partly cloudy
-        if ([3].includes(code)) return "☁️";             // Overcast
-        if ([45, 48].includes(code)) return "🌫️";        // Fog
-        if ([51, 53, 55].includes(code)) return "🌦️";    // Drizzle
-        if ([61, 63, 65].includes(code)) return "🌧️";    // Rain
-        if ([66, 67].includes(code)) return "🌧️❄️";      // Freezing rain
-        if ([71, 73, 75, 77].includes(code)) return "❄️"; // Snow
-        if ([80, 81, 82].includes(code)) return "🌦️";    // Showers
-        if ([85, 86].includes(code)) return "🌨️";        // Snow showers
-        if ([95].includes(code)) return "⛈️";             // Thunderstorm
-        if ([96, 99].includes(code)) return "⛈️⚡";        // Thunderstorm with hail
-        return "❓";                                       // Unknown
-    };
-    
-
-    useEffect(() => {
-        const fetchWeather = async () => {
-            try {
-                console.log("Fetching weather data...");
-                const params = {
-                    latitude: 30.628,
-                    longitude: -96.3344,
-                    current: ["temperature_2m", "weather_code", "precipitation"],
-                    timezone: "Europe/Moscow",
-                    temperature_unit: "fahrenheit"
-                };
-                const url = "https://api.open-meteo.com/v1/forecast";
-                const responses = await fetchWeatherApi(url, params);
-    
-                if (!responses || responses.length === 0) {
-                    throw new Error("Invalid response from weather API");
-                }
-    
-                const response = responses[0];
-                const current = response.current()!;
-    
-                const currentWeatherTime = new Date(Number(current.time()) * 1000);
-                const temperature = Number(current.variables(0)!.value()).toFixed(1);
-                const weatherCode = Number(current.variables(1)!.value());
-                const precipitation = Number(current.variables(2)!.value()).toFixed(2);
-    
-                const weatherIcon = getWeatherIcon(weatherCode);
-    
-                const weatherData = {
-                    current: {
-                        time: currentWeatherTime,
-                        temperature2m: temperature,
-                        weatherCode,
-                        precipitation,
-                        icon: weatherIcon
-                    }
-                };
-    
-                setWeatherData(weatherData);
-                console.log("Weather data received:", weatherData);
-            } catch (error) {
-                console.error("Error fetching weather data:", error);
-            }
-        };
-    
-        fetchWeather();
+    React.useEffect(()=>{
+        fetch(BackendURL + "manager/menu")
+            .then((res) => res.json())
+            .then((data) => set_Menu(data))
+            .catch(e => console.log(e))
     }, []);
-    
+
+
+    var menu_Data = JSON.parse(JSON.stringify(menu_Items));
+    const menu: Item[] = [];
+    for(var i in menu_Data){
+        menu.push({id: menu_Data[i].id, name: menu_Data[i].item_name, cost: menu_Data[i].base_cost, group: menu_Data[i].item_group});
+    }
+
     const menuCategories: Record<string, Item[]>={};
 
-   menu.forEach(item=>{
-    if(menuCategories[item.group]){
-        menuCategories[item.group].push(item);
-    }
-    else {
-        menuCategories[item.group] = [];
-        menuCategories[item.group].push(item);}
-   });
-
-   const add_Item = (customizedItem: {
-    icePer: number;
-    sugarPer: number;
-    topping: string;
-    totalCost: number;
-    name: string;
-    group: string;
-    cost: number;
-    id: number;
-}) => {
-    set_Cart_Items(prev_Items=> 
-        prev_Items.concat(
-        {
-            icePer: customizedItem.icePer,
-            sugarPer: customizedItem.sugarPer,
-            topping:customizedItem.topping,
-            totalCost: customizedItem.totalCost,
-            name: customizedItem.name,
-            group: customizedItem.group,
-            cost: customizedItem.totalCost,
-            id: customizedItem.id,
+    menu.forEach(item=>{
+        if(menuCategories[item.group]){
+            menuCategories[item.group].push(item);
         }
-            )
-            );
-};
-
-   const remove_Item=(id:number)=>{
-    set_Cart_Items(prev_Items=>{
-        const new_Item: orderItem[]=[];
-        prev_Items.forEach(item=>{
-            if (!(id === item.id))
-                new_Item.push(item);
-        });
-        return new_Item;
+        else {
+            menuCategories[item.group] = [];
+            menuCategories[item.group].push(item);}
     });
-   };
 
-    
+    const genID = ():number=> {
+        return Math.floor(9999999 * Math.random());
+    }
+
+    const add_Item = function(){
+
+        let toppingCost = 1;
+        if(finalTopping==='None'){
+            toppingCost = 0;
+        }
+
+        const itemAdded: orderItem = {
+            icePer: icePer,
+            sugarPer: sugarPer,
+            topping: finalTopping,
+            totalCost: customize.cost +toppingCost,
+            name: customize.name,
+            group: customize.group,
+            cost: customize.cost,
+            id: customize.id,
+            itemID: genID()
+        }
+
+        set_Cart_Items(function(prev) {
+                return prev.concat(
+                    [itemAdded]
+                )
+            }
+        );
+
+        setIcePer(100);
+        setSugarPer(100);
+        setFinalTopping('None')
+        setCustomize(null);
+    };
+
+    const remove_Item=(itemID:number)=>{
+        set_Cart_Items(prev_Items=>{
+            const add_Item: orderItem[]=[];
+            prev_Items.forEach(item=>{
+                if (!(itemID === item.itemID))
+                    add_Item.push(item);
+            });
+            return add_Item;
+        });
+    };
+
     let total_Cost = 0;
     cart_Items.forEach(item=>{
-        total_Cost += item.cost;
+        total_Cost += item.totalCost;
     });
- 
 
-    return (
-        <div style={{ width: '100%', display: 'flex' }}>
-            {/* Weather Display - Top Right */}
-            <div style={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                background: 'rgba(29, 13, 13, 0.87)',
-                padding: '10px',
-                borderRadius: '8px',
-                boxShadow: '2px 2px 10px rgba(0, 0, 0, 0.1)'
-            }}>
-                <h3>Weather</h3>
-                {weatherData ? (
-                    <div>
-                        <p>{weatherData.current.icon} {weatherData.current.temperature2m}°F</p>
-                        {(weatherData.current.weatherCode >= 51 && weatherData.current.weatherCode <= 67) || // Drizzle & Freezing Rain
-                         (weatherData.current.weatherCode >= 61 && weatherData.current.weatherCode <= 65) || // Rain
-                         (weatherData.current.weatherCode >= 80 && weatherData.current.weatherCode <= 82) || // Showers
-                         (weatherData.current.weatherCode === 95 || weatherData.current.weatherCode === 96 || weatherData.current.weatherCode === 99) // Thunderstorms
-                        ? (
-                            <p>🌧️ Precipitation: {weatherData.current.precipitation} mm</p>
-                        ) : null}
-                        <p>Last Updated: {weatherData.current.time.toLocaleString(undefined, {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })}</p>
-                        
-                    </div>
-                ) : (
-                    <p>Loading Weather...</p>
-                )}
+    const [checkoutPopup, setCheckoutPopup] = useState(false);
 
-            </div>
+    const [thankYou, showThankyou] = useState(false);
 
-            {/*Left (80%) side of the page, menu item buttons*/}
-            <div style= {{
+    const submitOrder = async (tip: number) => {
+        try {
+            const order = {
+                items: cart_Items,
+                totalCost: total_Cost,
+                tipPercentage: tip,
+                tipTotal: total_Cost * (tip/ 100),
+                orderTotal: total_Cost * (1 + tip/100),
+                timestamp: new Date().toISOString()
+            };
+
+            const response = await fetch(`${BackendURL}submitOrder`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(order),
+            });
+            if(!response.ok){
+                const serverMessage = await response.text();
+                console.error('Server returned error:', serverMessage);
+                throw new Error(serverMessage);
+            }
+
+            console.log('Order successfully submitted');
+
+            set_Cart_Items([]);
+            setCheckoutPopup(false);
+            showThankyou(true);
+        }
+        catch(error: any){
+            console.error('Error submitting order:', error.message || error);
+            alert(`Error Submitting Order: ${error.message || error}`);
+        }
+    };
+
+    const navigate = useNavigate();
+
+
+    return(
+        <div style = {{
+            height: '100vh',
+            width: '100vw',
+            display: 'flex',
+        }}>{/* left 80*/}
+            <div style = {{
                 width: '80%',
+                height: '100vh',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+            }}> {/* menu items*/}
+                <div style = {{
+                    height: '40%',
+                    padding: '8px',
+                    borderRadius: '8px'
                 }}>
-                <h1 style = {{textAlign: 'center'}}> Menu </h1> 
-                
-                {
-                Object.entries(menuCategories).map(([key_Cat, value_Items])=>(
-                    <div key={key_Cat}
-                        style = {{
-                            textAlign: 'center'
-                        }}
-                    >
-                        <h2> {key_Cat} </h2>
-                        <div style = {{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            textAlign: 'center',
-                            gap: '20px',
-                            flexDirection: 'row',
-                            flexWrap: 'wrap'
-                            }}>
-                            {
-                                value_Items.map((item)=>(
-                                    <button key={item.id}
-                                        onClick={()=> setCustomize(item)}
-                                        style = {{
-                                            height: '150px',
-                                            width: '150px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'center',
-                                            backgroundColor: 'black',
-                                        }}
-                                        
-                                    >
-                                    
-                                        <span style = {{
-                                            justifyContent: 'center'
-                                            }}>
-                                            {item.name}
-                                        </span>
+                    <h2 style = {{
+                        textAlign: 'center'
+                    }}>
+                        Menu
+                    </h2>
+                    <div style = {{
+                        display: 'grid',
+                        gap: '10px',
+                        gridTemplateColumns: 'repeat(10, 120px)'
+                    }}>
 
-                                        <span style = {{
-                                            justifyContent: 'center'
+                        {Object.entries(menuCategories).map(function([key_Cat, value_Items]) {
+                            return value_Items.map(function(item){
+                                    let backgroundColor='black';
+                                    if (customize !== null && customize.id === item.id){
+                                        backgroundColor='green';
+                                    }
+                                    return(
+                                        <button
+                                            key = {item.id}
+                                            style = {{
+                                                height: '100px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                borderRadius: '6px',
+                                                fontSize: '10px',
+                                                backgroundColor: backgroundColor,
+                                                color: 'white'
+                                            }}
+                                            onClick = {function() {
+                                                setCustomize(item);
                                             }}>
-                                            ${item.cost.toFixed(2)}
-                                        </span>
-                                    </button>
-                                ))
-                            }
+                                            <span>{item.name}</span>
+                                            <span>${item.cost.toFixed(2)}</span>
+                                        </button>
+                                    );
+                                }
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Customization Section*/}
+                <div style = {{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: '10px',
+                    padding: '10px'
+                }}>
+                    <h2 style = {{
+                        textAlign: 'center',
+                        fontSize: '14px'
+                    }}>Customization
+                    </h2>
+
+                    <div style = {{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '12px'
+                    }}>{/* Ice*/}
+                        <div>
+                            <h3 style = {{
+                                textAlign: 'center',
+                                fontSize: '12px'
+                            }}>Ice Percentage</h3>
+                            <div style = {{
+                                display: 'grid',
+                                gridTemplateColumns: '1fr 1fr',
+                                gap: '12px'
+                            }}>
+                                {[100, 50, 25, 0].map(function(per){
+                                        let backgroundColor='grey';
+                                        let color='white';
+                                        let opacity=1;
+                                        if(icePer===per){
+                                            backgroundColor='green';
+                                        }
+                                        return(
+                                            <button
+                                                key = {per}
+                                                onClick = {function() {
+                                                    setIcePer(per);
+                                                }}
+                                                style = {{
+                                                    height: '80px',
+                                                    borderRadius: '8px',
+                                                    backgroundColor: backgroundColor,
+                                                    color: color,
+                                                    fontSize: '12px',
+                                                    opacity: opacity
+                                                }}
+                                            >{per}%
+                                            </button>
+                                        );
+                                    }
+                                )}
+                            </div>
+                        </div>{/* Sugar*/}
+                        <div>
+                            <h3 style = {{
+                                textAlign: 'center',
+                                fontSize: '12px'
+                            }}>Sugar Percentage</h3>
+                            <div style = {{
+                                display: 'grid',
+                                gridTemplateColumns: '1fr 1fr',
+                                gap: '12px'
+                            }}>
+                                {[100, 50, 25, 0].map(function(per){
+                                        let backgroundColor='grey';
+                                        let color='white';
+                                        let opacity=1;
+                                        if(sugarPer===per){
+                                            backgroundColor='green';
+                                        }
+                                        return(
+                                            <button
+                                                key = {per}
+                                                onClick = {function() {
+                                                    setSugarPer(per);
+                                                }}
+                                                style = {{
+                                                    height: '80px',
+                                                    borderRadius: '8px',
+                                                    backgroundColor: backgroundColor,
+                                                    color: color,
+                                                    fontSize: '12px',
+                                                    opacity: opacity
+                                                }}
+                                            >{per}%
+                                            </button>
+                                        );
+                                    }
+                                )}
+                            </div>
                         </div>
                     </div>
-                    ))
-                }
+
+                    <div style = {{
+
+                    }}>
+                        <h3 style = {{
+                            textAlign: 'center',
+                            fontSize: '12px'
+                        }}>(+$1) Toppings</h3>
+                        <div style = {{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(10, 120px)',
+                            gap: '8px',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+
+                            {toppingOptions.map(function(top){
+                                let backgroundColor='grey';
+                                let color='white';
+                                let opacity=1;
+                                if(finalTopping===top){
+                                    backgroundColor='green';
+                                }
+                                return(
+                                    <button
+                                        key = {top}
+                                        onClick = {function() {
+                                            setFinalTopping(top);
+                                        }}
+                                        style = {{
+                                            height: '120px',
+                                            width: '120px',
+                                            borderRadius: '8px',
+                                            backgroundColor: backgroundColor,
+                                            color: color,
+                                            fontSize: '12px',
+                                            opacity: opacity
+                                        }}
+                                    >{top}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>{/* Add and Cancel Buttons*/}
+
+                    <div style = {{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '8px',
+                        marginTop: '14px'
+                    }}>
+                        <button
+                            onClick = {
+                                add_Item
+                            }
+                            style = {{
+                                backgroundColor: 'green',
+                                color: 'white',
+                                borderRadius: '5px',
+                                fontSize: '12px',
+                                opacity: 1
+                            }}>Add
+                        </button>
+                        <button
+                            onClick = {() => {
+                                setIcePer(100);
+                                setSugarPer(100);
+                                setFinalTopping('None');
+                                setCustomize(null);
+                            }
+                            }
+                            style = {{
+                                backgroundColor: 'red',
+                                color: 'white',
+                                borderRadius: '5px',
+                                fontSize: '12px',
+                                opacity: 1
+                            }}>Cancel
+                        </button>
+                    </div>
+                </div>
             </div>
-            {/*Right (20%) side of the page, current order*/}
+
             <div style = {{
                 width: '20%',
                 display: 'flex',
@@ -417,34 +402,34 @@ function Cashier() {
                 alignContent: 'center',
                 alignItems: 'center',
                 gap: '20px'
-                }}>
-                
+            }}>
+
                 <h2 style = {{textAlign: 'center'}}> Order </h2>
 
                 <div style = {{
                     overflowY:  'auto',
                     gap: '50px'
-                    }}>
+                }}>
 
                     {cart_Items.map(item=>(
                         <div key = {item.id}
-                            style = {{
-                                display: 'flex',
-                                alignItems: 'center',
+                             style = {{
+                                 display: 'flex',
+                                 alignItems: 'center',
+                                 justifyContent: 'center',
+                                 width: '185px',
+                                 height: '50px',
+                                 backgroundColor: '#D3D3D3',
+                                 borderRadius: '10px',
+                                 fontSize: '12px',
+
+                             }}>
+                            <div style = {{
                                 justifyContent: 'center',
-                                width: '185px',
-                                height: '50px',
-                                backgroundColor: '#D3D3D3',
-                                borderRadius: '10px',
-                                fontSize: '12px',
+                                alignItems: 'center',
+                                width: '80%',
 
                             }}>
-                            <div style = {{
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    width: '80%',
-                                    
-                                }}>
                                 <div style = {{
                                     textAlign: 'center',
                                 }}>
@@ -453,10 +438,10 @@ function Cashier() {
                                 <div style = {{
                                     textAlign: 'center'
                                 }}>
-                                    ${item.cost.toFixed(2)}
+                                    ${item.totalCost.toFixed(2)}
                                 </div>
                             </div>
-                            <button onClick={()=> remove_Item(item.id)}
+                            <button onClick={()=> remove_Item(item.itemID)}
                                     style = {{
                                         justifyContent: 'right',
                                         textAlign: 'right'
@@ -464,24 +449,26 @@ function Cashier() {
                                 x
                             </button>
                         </div>
-                        ))
+                    ))
                     }
                 </div>
 
                 <div style = {{
                     justifyContent: 'center',
                     alignItems: 'center',
-                    }}>
+                }}>
                     <div style = {{
                         display: 'flex',
                         justifyContent: 'center',
                         textAlign: 'center',
                         fontWeight: 'bold',
-                        }}>
+                    }}>
                         <span> Total:  </span>
                         <span> ${total_Cost.toFixed(2)} </span>
                     </div>
-                    <button style = {{
+                    <button
+                    onClick={() => setCheckoutPopup(true)}
+                    style = {{
                         justifyContent: 'center',
                         textAlign: 'center'
                     }}>
@@ -490,38 +477,70 @@ function Cashier() {
                 </div>
             </div>
 
-
-
-        {/*Modify Item Popup*/}
-        {customize && (
-    <CustomItemWindow
-        item={customize}
-        save={(customizedOptions) => 
-                {
-                    add_Item(
-                                {
-                                icePer: customizedOptions.icePer,
-                                sugarPer: customizedOptions.sugarPer,
-                                totalCost: customizedOptions.totalCost,
-                                topping:customizedOptions.topping,
-                                id: customize.id,
-                                name: customize.name,
-                                group: customize.group,
-                                cost: customize.cost,
-                                }
-                            );
-                            setCustomize(null);
-                }
-             }
-        cancel={() => setCustomize(null)}
-    />
+    )
+    {checkoutPopup && (
+        <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+        }}>
+            <div style={{
+                backgroundColor: 'black',
+                borderColor: 'white',
+                padding: '1000px',
+                borderRadius: '40px',
+                textAlign: 'center'
+            }}>
+                <h2>Order Confirmed!</h2>
+                <p>Tip:</p>
+                <button
+                    onClick={() => {
+                        setCheckoutPopup(false);
+                    }}>Back to Menu</button>
+                <button onClick={() => submitOrder(15)}>15%</button>
+                <button onClick={() => submitOrder(20)}>20%</button>
+                <button onClick={() => submitOrder(25)}>25%</button>
+                <button onClick={() => submitOrder(0)}>No Tip</button>
+            </div>
+    </div>
 )}
-
-
-
+{thankYou && (
+    <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    }}>
+        <div style={{
+            backgroundColor: 'darkslategrey',
+            borderColor: 'white',
+            padding: '1000px',
+            borderRadius: '40px',
+            textAlign: 'center'
+        }}>
+            <h2>Thank you for shopping with us!</h2>
+            <button
+            onClick={() => {
+                setCheckoutPopup(false);
+                showThankyou(false);
+            }}>Back to Menu</button>
         </div>
+    </div>
+)}
+    </div>
     );
 
 }
 
+
 export default Cashier;
+

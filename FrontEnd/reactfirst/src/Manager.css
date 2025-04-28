@@ -5,6 +5,14 @@ text-align: top;
 table{
   display: block;
   align-items: center;
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10pt auto;
+
+}
+th, td{
+  padding: 10pt;
+  text-align: center;
 }
 
 /* Add to your Manager.css */
@@ -39,4 +47,15 @@ table{
   background-color: #fde0e0;
   border-radius: 4px;
   margin-top: 10px;
+}
+
+.modal {
+  position: fixed;
+  top: 20%;
+  left: 10%;
+  right: 10%;
+  background-color: rgb(12, 38, 124);
+  border: 2px solid black;
+  padding: 20px;
+  z-index: 1000;
 }
