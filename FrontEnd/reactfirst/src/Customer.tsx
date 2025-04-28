@@ -500,8 +500,8 @@ function Customer() {
                                             <button key={item.id}
                                                     onClick={()=> setCustomize(item)}
                                                     style = {{
-                                                        height: '150px',
-                                                        width: '150px',
+                                                        height: '250px',
+                                                        width: '250px',
                                                         display: 'flex',
                                                         flexDirection: 'column',
                                                         justifyContent: 'center',
@@ -509,10 +509,15 @@ function Customer() {
                                                     }}
 
                                             >
-
-                                        <span style = {{
+                                            <span style = {{
+                                                justifyContent: 'center'
+                                            }}>
+                                                <img src = {item.name + '.png'} style = {{width: '50%', height: '100%', borderRadius: '100px'} }/>
+                                            </span>
+                                                <span style = {{
                                             justifyContent: 'center'
                                         }}>
+
                                             {item.name}
                                         </span>
 

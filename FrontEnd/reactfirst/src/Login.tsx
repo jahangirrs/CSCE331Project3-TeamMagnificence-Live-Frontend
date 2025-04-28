@@ -118,8 +118,8 @@ function Login(){
         <div style={{fontSize: fontSize + 'px', margin: 'auto', justifyContent: 'center', }}>
             <p style={{fontSize: '50pt'}}>Welcome to Generic Boba!</p>
             <div style = {{display: 'flex', justifyContent: 'center', gap: '10pt'}}>
-            <button className={"links"}><Link style = {{color: 'white'}} to = { url }>Click Here to Login/ Create Account</Link></button>
-            <button className={"links"}><Link style = {{color: 'white'}} to = "/Customer">Click Here to Order</Link></button>
+            <Link style = {{color: 'white', borderStyle: 'solid', borderRadius: '10px', backgroundColor: 'black', borderColor: 'black'}} to = { url }>Click Here to Login/ Create Account</Link>
+            <Link style = {{color: 'white', borderStyle: 'solid', borderRadius: '10px', backgroundColor: 'black', borderColor: 'black'}} to = "/Customer">Click Here to Order</Link>
             </div>
             {isLoggedIn &&
                 <div className={"questions"} >
