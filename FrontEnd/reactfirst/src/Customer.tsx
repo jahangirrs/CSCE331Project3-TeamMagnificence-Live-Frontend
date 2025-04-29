@@ -425,10 +425,10 @@ function Customer() {
                 alignContent: 'center',
                 alignItems: 'center',
                 textAlign: 'center'
-            }} role = "accessibility">
+            }} role = "toolbar">
                 <div style={{ padding: '1rem'}}>
                     <div style={{ marginBottom: '1rem'}}>
-                        <p><u>Change Language and Font Size</u></p>
+                        <p role=""><u>Change Language and Font Size</u></p>
                         <div id = "GoogleTranslate"></div>
                         <button onClick={() => changeFontSize('Increase')}>Increase</button>
                         <button onClick={() => changeFontSize('Decrease')}>Decrease</button>
@@ -436,7 +436,7 @@ function Customer() {
                     </div>
                 </div>
             </div>
-            <div style={{ width: '100%', display: 'flex', height: '95%' }}>
+            <div style={{ width: '100%', display: 'flex', height: '95%' }} role = "main">
                 {/* Weather Display - Top Right */}
                 <div style={{
                     position: 'absolute',
