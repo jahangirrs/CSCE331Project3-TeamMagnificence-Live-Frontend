@@ -3,7 +3,7 @@ import {Link, useNavigate} from "react-router-dom";
 
 
 //URL variable, change depending on local testing or Live push
- const BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
+const BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
 //const BackendURL = "http://localhost:3000/";
 
 //front end url
@@ -43,6 +43,7 @@ function Login(){
                 .then((res) => res.json())
                 .then((data) => {
                     if(data.exists) {
+                        localStorage.setItem("allergens", data.allergens)
                         setUserRedirect(data.path)
                     }
                     else{
@@ -99,7 +100,6 @@ function Login(){
     //remove non-food items from inventory array
     inventory.splice(28,1);
     inventory.splice(21,3);
-
 
 
     return(

@@ -72,7 +72,7 @@ const CustomItemWindow = ({item, save, cancel}:
     //allergen alert logic
     const [isAllergic, setIsAllergic] = useState(false);
     const [ingredients, setIngredients] = useState(new Array<string>());
-    const allergens = localStorage.getItem("allergens");
+    const allergens:string | null | string[] = localStorage.getItem("allergens") !== null ? localStorage.getItem("allergens") : [''];
     const [allergicIngredients, setAllergicIngredients] = useState(new Array<string>());
 
     //get menu item ingredients
@@ -95,7 +95,9 @@ const CustomItemWindow = ({item, save, cancel}:
                 }
             });
 
-
+        window.scrollTo({
+            top:0
+        })
 
 
     }, [item]);

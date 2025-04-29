@@ -3,8 +3,8 @@ import './Manager.css'
 import React from 'react'
 
 //URL variable, change depending on local testing or Live push
-let BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
-//let BackendURL = "http://localhost:3000/";
+const BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
+//const BackendURL = "http://localhost:3000/";
 
 //Fetch and Build employee Table
 function EmployeeView(){
