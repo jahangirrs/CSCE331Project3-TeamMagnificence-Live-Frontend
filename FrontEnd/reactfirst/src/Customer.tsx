@@ -425,7 +425,7 @@ function Customer() {
                 alignContent: 'center',
                 alignItems: 'center',
                 textAlign: 'center'
-            }}>
+            }} role = "accessibility">
                 <div style={{ padding: '1rem'}}>
                     <div style={{ marginBottom: '1rem'}}>
                         <p><u>Change Language and Font Size</u></p>
@@ -514,7 +514,7 @@ function Customer() {
                                             <span style = {{
                                                 justifyContent: 'center'
                                             }}>
-                                                <img src = {item.name + '.png'} style = {{width: '50%', height: '100%', borderRadius: '100px'} }/>
+                                                <img alt = "" src = {item.name + '.png'} style = {{width: '50%', height: '100%', borderRadius: '100px'} }/>
                                             </span>
                                                 <span style = {{
                                             justifyContent: 'center'
