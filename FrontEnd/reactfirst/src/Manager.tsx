@@ -889,6 +889,7 @@ function PurchaseOrderView() {
           ))}
           {addingOrder && (
             <tr>
+              <td>Auto</td>
               <td><input value={newOrder.inventory_name} onChange={e => setNewOrder({...newOrder, inventory_name: e.target.value})} /></td>
               <td><input value={newOrder.unitsize} onChange={e => setNewOrder({...newOrder, unitsize: e.target.value})} /></td>
               <td><input value={newOrder.supplier_name} onChange={e => setNewOrder({...newOrder, supplier_name: e.target.value})} /></td>
