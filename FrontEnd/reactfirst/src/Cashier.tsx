@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
         
 //URL variable, change depending on local testing or Live push
 const BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
 //const BackendURL = "http://localhost:3000/";
+
+const navigate = useNavigate();
 
 type Item = {
     name: string;
@@ -472,6 +475,7 @@ function Cashier() {
                     }}>
                         Checkout
                     </button>
+                    <button onClick={() => navigate('/')}>Back to Login</button>
                 </div>
             </div>
 

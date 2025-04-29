@@ -635,6 +635,7 @@ function Customer() {
                             }}>
                             Checkout
                         </button>
+                        <button onClick={() => navigate('/')}>Back to Login</button>
                     </div>
                 </div>
 
