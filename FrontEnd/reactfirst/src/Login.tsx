@@ -102,6 +102,26 @@ function Login(){
     inventory.splice(21,3);
 
 
+    //Translate API logic
+    useEffect(() => {
+        const googleScript = document.createElement("script");
+        googleScript.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        document.body.appendChild(googleScript);
+
+        window.googleTranslateElementInit = () =>
+        {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
+                },
+                'GoogleTranslate');
+
+
+
+        }
+
+    }, []);
+
     return(
         <div style={{ padding: '1rem', display: 'flex', justifyContent: 'center', height: '100vh', margin: '0'}}>
             <div style={{ marginBottom: '1rem'}}>

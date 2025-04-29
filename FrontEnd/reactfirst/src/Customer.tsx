@@ -418,6 +418,25 @@ function Customer() {
 
     const navigate = useNavigate();
 
+    //Translate API logic
+    useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        document.body.appendChild(script);
+
+        window.googleTranslateElementInit = () =>
+        {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
+                },
+                'GoogleTranslate');
+
+
+
+        }
+    }, []);
+
     return (
         <div>
             <div style = {{

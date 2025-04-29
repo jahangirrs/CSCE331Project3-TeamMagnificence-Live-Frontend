@@ -6,6 +6,14 @@ import Login from './Login.tsx'
 import Cashier from './Cashier.tsx'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
+//declaration for Translate logic types
+declare global {
+    interface Window {
+        googleTranslateElementInit: () => void;
+    }
+    const google: any;
+}
+
 //Create root element of document with all routes leading to separate Login, Manager, Customer, Cashier UI
 createRoot(document.getElementById('root')!).render(
 
