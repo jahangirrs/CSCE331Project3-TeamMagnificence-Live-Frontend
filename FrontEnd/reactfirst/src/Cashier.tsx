@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const BackendURL = "https://csce331project3-teammagnificence-live.onrender.com/";
 //const BackendURL = "http://localhost:3000/";
 
-const navigate = useNavigate();
+
 
 type Item = {
     name: string;
@@ -44,6 +44,7 @@ function Cashier() {
             .catch(e => console.log(e))
     }, []);
 
+    const navigate = useNavigate();
 
     var menu_Data = JSON.parse(JSON.stringify(menu_Items));
     const menu: Item[] = [];
