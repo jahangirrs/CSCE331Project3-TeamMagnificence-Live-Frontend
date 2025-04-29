@@ -14,7 +14,7 @@
                   },
                   'GoogleTranslate');
 
-        if(document.getElementById("GoogleTranslate") === null && window.location.pathname === '/Customer')  window.location.reload()
+        if(document.getElementById("GoogleTranslate") === null && (window.location.pathname === '/Customer' || window.location.pathname === '/') )  window.location.reload()
 
       }
     </script>
